@@ -179,17 +179,8 @@
       jsonp( array( "error" => "no such method") );
     }
     
-    //Handle tags
-    if( isset($_POST['tags']) && strlen($_POST['tags']) > 0 ) {
-      $tags = array_filter(array_map('trim', explode( ',', $_POST['tags'] )));
-      if( count($tags) > 0 ) R::tag($data, $tags);
-    }
-          
-    //Handle attributes
-    if( isset($_POST['attrib']) ){
-      $attributes = array_filter(array_map('trim', array_combine($_POST['attrib']['type'], $_POST['attrib']['value']))); 
-      if( count($attributes) > 0 ) R::attribute($data, $attributes);
-    }
+    if( isset($_POST['tags']) ) tags( $data, $_POST['tags'] );
+    if( isset($_POST['attrib']) ) attributes( $data, array('type'=>$_POST['attrib']['type'], 'value'=>$_POST['attrib']['value']) );
 
     jsonp( array( "stored" => R::store($data)) );
     
@@ -252,7 +243,21 @@
             $data['groups'] = collectData($item->sharedGroup);
             $data['active'] = $item->active;
             $data['plots'] = collectData($item->sharedPlot);
-
+            $data['relations'] = array();
+            
+            $relationships = R::related( $item, 'character');
+            foreach(  $relationships as $id => $bean ){   
+              $rel = R::load('character_character', $id);
+              $tags = R::tag( $rel );
+              $attribs = R::attribute( $rel );
+              $r = array(
+                'character' => array( 'name' => $bean->name, 'id' => $bean->id ),
+                'tags' => $tags,
+                'attributes' => $attribs 
+              );
+              $data['relations'][] = $r;
+            } 
+            
           break;
           
           case "playerGroup":
