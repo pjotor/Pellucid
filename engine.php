@@ -29,7 +29,23 @@
     } 
     return $data;
   }
-
+  
+  //Handle tags
+  function tags($bean, $tags = null) {
+    if( strlen($tags) > 0 ) {
+      $tags = array_filter(array_map('trim', explode( ',', $tags )));
+      if( count($tags) > 0 ) R::tag($bean, $tags);
+    }
+  }
+        
+  //Handle attributes
+  function attributes($bean, $attributes = array('type' => false, 'value' => false) ) {  
+    if( is_array($attributes['type']) && is_array($attributes['value']) ){
+      $attributes = array_filter(array_map('trim', array_combine( $attributes['type'], $attributes['value'] ))); 
+      if( count($attributes) > 0 ) R::attribute($bean, $attributes);
+    }
+  }
+    
   /****
   Engine
   ****/  
@@ -51,9 +67,11 @@
       $data->updated = $rNow;
       $data->created = $rNow;
       
-      //Name is used for human readable representation in lists and are _not_ unique
-      if( !strlen( $_POST['name'] ) ) die("missing name");
-      $data->name = $_POST['name'];  
+      if( $_POST['type'] != "realation"){
+        //Name is used for human readable representation in lists and are _not_ unique
+        if( !strlen( $_POST['name'] ) ) die("missing name");
+        $data->name = $_POST['name'];  
+      }
       
       //Every entety belongs to a game (unless it's a game)
       if( $_POST['type'] != "game" && !strlen( $_POST['game'] ) ) { 
@@ -91,14 +109,29 @@
         //This is soooo fugly!
         $owners = R::batch('player',$_POST['players']);
         foreach($owners as $owner) {
-          if(!$overWrite) {
-            $owner->sharedCharacter[] = $data;
-          } else {
-            $owner->sharedCharacter = $data;
-          }
+          $owner->sharedCharacter[] = $data;
           R::store($owner);
-        }       
+        }
       break;
+
+      case "realation":
+        if( !isset( $_POST['character']['init'] ) || !isset( $_POST['character']['recip'] ) ) {
+          jsonp( array( "error" => "missing character(s)") );
+        }
+        
+        $inits = R::batch('character', $_POST['character']['init']);
+        $recipians = R::batch('character', $_POST['character']['recip']);
+
+        foreach($inits as $init) {
+          foreach($recipians as $recip) {
+            $rel = R::load( 'character_character', R::associate( $init, $recip ) );
+            if( isset($_POST['tags']) ) tags( $rel, $_POST['tags'] );
+            if( isset($_POST['attrib']) ) attributes( $rel, array('type'=>$_POST['attrib']['type'], 'value'=>$_POST['attrib']['value']) );
+          }
+        }
+ 
+        jsonp( array( "stored" => $_POST['character']['init'] ) );
+      break;      
       
       case "plot":
         $data->active = false;
@@ -108,11 +141,7 @@
         if( isset( $_POST['characters'] ) && is_array( $_POST['characters'] ) ) {
           $owners = R::batch('character',$_POST['characters']);
           foreach($owners as $owner) {
-            if(!$overWrite) {
-              $owner->sharedPlot[] = $data;
-            } else {
-              $owner->sharedPlot = $data;
-            }
+            $owner->sharedCharacter[] = $data;
             R::store($owner);
           }            
         }
@@ -120,13 +149,9 @@
         if( isset( $_POST['group'] ) && is_array( $_POST['group'] ) ) {
           $owners = R::batch('group',$_POST['group']);
           foreach($owners as $owner) {
-            if(!$overWrite) {
-              $owner->sharedPlot[] = $data;
-            } else {
-              $owner->sharedPlot = $data;
-            }
+            $owner->sharedCharacter[] = $data;
             R::store($owner);
-          }             
+          }            
         }
       break;
 
@@ -134,13 +159,9 @@
         if( isset( $_POST['players'] ) && is_array( $_POST['players'] ) ) {
           $owners = R::batch('player',$_POST['players']);
           foreach($owners as $owner) {
-            if(!$overWrite) {
-              $owner->sharedGroup[] = $data;
-            } else {
-              $owner->sharedGroup = $data;
-            }
+            $owner->sharedCharacter[] = $data;
             R::store($owner);
-          }              
+          }             
         }
       break;        
       
@@ -148,13 +169,9 @@
         if( isset( $_POST['characters'] ) && is_array( $_POST['characters'] ) ) { 
           $owners = R::batch('character',$_POST['characters']);
           foreach($owners as $owner) {
-            if(!$overWrite) {
-              $owner->sharedGroup[] = $data;
-            } else {
-              $owner->sharedGroup = $data;
-            }
+            $owner->sharedCharacter[] = $data;
             R::store($owner);
-          }              
+          }             
         }
       break;          
 

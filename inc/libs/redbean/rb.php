@@ -7352,7 +7352,7 @@ class RedBean_Facade {
 			}
 			else {
 				$info = $extra;
-			}
+			}      
 			$bean = RedBean_Facade::dispense('typeLess');
 			$bean->import($info);
 			return self::$extAssocManager->extAssociate($bean1, $bean2, $bean);
