@@ -8,8 +8,7 @@ R::setup("mysql:host=localhost;
 require_once('libs/stamp/StampTE.php');
 //MiMViC framework
 require_once('libs/mimvic/uvic.php');
-//MiMViC setup
-use MiMViC as mvc;
+
 //authorization class
 require_once 'libs/auth/auth.php';
 $auth = new Auth();

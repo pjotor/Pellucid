@@ -51,6 +51,12 @@
   <input type="password" name="login_password" placeholder="password">
   <input type="submit" value="login"><br/>
 </form>   
+<form action="?login" method="POST">
+  login<br/>
+  <input type="text" name="login_email" placeholder="email">
+  <input type="password" name="login_password" placeholder="password">
+  <input type="submit" value="login"><br/>
+</form>   
 <?php
   } else { 
     $logged_in = $auth->checkSession();
