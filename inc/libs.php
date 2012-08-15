@@ -10,4 +10,10 @@ require_once('libs/stamp/StampTE.php');
 require_once('libs/mimvic/uvic.php');
 //MiMViC setup
 use MiMViC as mvc;
+//authorization class
+require_once 'libs/auth/auth.php';
+$auth = new Auth();
+//Flash messaging class
+require_once('libs/class.messages.php');
+$msg = new Messages();
 ?>

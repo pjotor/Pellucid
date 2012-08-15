@@ -46,7 +46,7 @@
 ?>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-  <title>Gossamer Admin</title>
+  <title>Pellucid Admin</title>
   <!-- Based on Ninja Admin //-->
   <link rel="stylesheet" type="text/css"  href="css/admin.css" />
   <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
@@ -76,6 +76,15 @@ $(document).ready(function(){
       $(this).children(".val").attr("name", "attrib[value][" + i + "]");
     });
   }  
+  
+  if( document.location.hash.length ) {
+    $(".navigation a").removeClass("active");
+    $(".navigation a[href='" + document.location.hash + "']").addClass("active");
+  }
+  $(".navigation a").click(function(){
+    $(".navigation a").removeClass("active");
+    $(this).addClass("active");
+  });
 });
 </script>  
 </head>
@@ -84,17 +93,17 @@ $(document).ready(function(){
 
 	<div class="wrapper">
 	
-		<h1 class="logo">GOSSAMER ADMIN</h1>
+		<h1 class="logo">PELLUCID ADMIN</h1>
 		<p class="txt_right">Logged in as <strong>Admin</strong>  <span class="v_line"> | </span> <a href="#"> Logout</a></p>
 	
 	<!-- Navigation -->
 	
 		<div class="navigation">
 				<ul>
-					<li><a href="#">GAMES</a></li>
-					<li><a href="#">MANAGE</a></li>
-					<li><a href="#" class="active">SETTINGS</a></li>
-					<li><a href="#">USERS</a></li>
+					<li><a href="#games" class="active">GAMES</a></li>
+					<li><a href="#manage">MANAGE</a></li>
+					<li><a href="#settings">SETTINGS</a></li>
+					<li><a href="#users">USERS</a></li>
 				</ul>
         
 				<div id="searchform">
@@ -105,10 +114,11 @@ $(document).ready(function(){
 				</div>
         
 				<ul class="sub clear">
-					<li><a href="#">PLAYERS</a></li>
-					<li><a href="#">CHARACTERS</a></li>
-					<li><a href="#">GROUPS</a></li>
-					<li><a href="#">PLOTS</a></li>
+					<li><a href="#players">PLAYERS</a></li>
+					<li><a href="#characters">CHARACTERS</a></li>
+					<li><a href="#groups">GROUPS</a></li>
+					<li><a href="#plots">PLOTS</a></li>
+					<li><a href="#relations">RELATIONS</a></li>
 				</ul>
         
 		</div>
@@ -297,7 +307,7 @@ $(document).ready(function(){
     
   <!-- Footer -->
     
-		<p class="footer"><a href="#">ADVANCED  SEARCH</a> <span class="v_line"> |</span> <a href="#">LOGOUT</a></p>
+		<p class="footer">Based on Ninja Admin - <a href="#">ADVANCED  SEARCH</a> <span class="v_line"> |</span> <a href="#">LOGOUT</a></p>
 		
 	</div>
 </body>

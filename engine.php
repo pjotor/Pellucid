@@ -12,7 +12,7 @@
   ****/  
   //Format and kill with JSONP
   function jsonp($data) { 
-    $callback = (isset($_REQUEST["callback"])) ? $_REQUEST["callback"] : false;
+    $callback = @$_REQUEST["callback"];
     $json = json_encode($data);
     header("Content-type: application/json");
     die( ($callback) ? "$callback(" . $json . ");" : $json );
@@ -54,27 +54,28 @@
   if (isset($_POST['type'])) {
   
     $rNow = R::$f->now();
-    
-    $id = isset($_POST['id']) ? $_POST['id'] : null;
-    $data = R::load($_POST['type'], $id);
+    $type = $_POST['type'];
+    $id = @$_POST['id'];
+    $data = R::load($type, $id);
     
     if (!$data->id) {
-      $data = ( stristr($_POST['type'], 'group') ) ? 
+      $data = ( stristr($type, 'group') ) ? 
         R::dispense('group') :  
-        R::dispense( $_POST['type'] );
+        R::dispense( $type );
 
-      $data->type = $_POST['type'];
+      $data->type = $type;
       $data->updated = $rNow;
       $data->created = $rNow;
       
-      if( $_POST['type'] != "realation"){
+      if( $type != "realation"){
         //Name is used for human readable representation in lists and are _not_ unique
-        if( !strlen( $_POST['name'] ) ) die("missing name");
+        if( !@$_POST['name'] ) die("missing name");
         $data->name = $_POST['name'];  
       }
       
       //Every entety belongs to a game (unless it's a game)
-      if( $_POST['type'] != "game" && !strlen( $_POST['game'] ) ) { 
+      $game = @$_POST['game'];
+      if( $type != "game" && !strlen( $game ) ) { 
         jsonp( array( "error" => "missing game" ) );
       }
 
@@ -85,14 +86,13 @@
 
     //Extra percousion, $overWrite
     if( !$data->id || $overWrite ) {
-      if( $_POST['type'] != "game" ) {
-        if( !isset( $_POST['game'] ) ) jsonp( array( "error" => "missing game") );
-        $parent = R::load('game', $_POST['game']);
+      if( $type != "game" ) {
+        $parent = R::load('game', $game);
         $data->game = $parent;
       }
     }
 
-    switch ($_POST['type']) {
+    switch ($type) {
       case  "game":
       break;
       
@@ -101,7 +101,7 @@
       break;
       
       case "character":
-        if( !isset( $_POST['players'] ) || !is_array( $_POST['players'] ) ) {
+        if( !is_array( @$_POST['players'] ) ) {
           jsonp( array( "error" => "missing player(s)") );
         }
         $data->active = false;
@@ -125,8 +125,8 @@
         foreach($inits as $init) {
           foreach($recipians as $recip) {
             $rel = R::load( 'character_character', R::associate( $init, $recip ) );
-            if( isset($_POST['tags']) ) tags( $rel, $_POST['tags'] );
-            if( isset($_POST['attrib']) ) attributes( $rel, array('type'=>$_POST['attrib']['type'], 'value'=>$_POST['attrib']['value']) );
+            tags( $rel, @$_POST['tags'] );
+            attributes( $rel, array('type'=>@$_POST['attrib']['type'], 'value'=>@$_POST['attrib']['value']) );
           }
         }
  
@@ -138,7 +138,7 @@
         
         if( isset($_POST['parent']) ) $data->plot = R::load('plot', $_POST['parent']);
         
-        if( isset( $_POST['characters'] ) && is_array( $_POST['characters'] ) ) {
+        if( is_array( @$_POST['characters'] ) ) {
           $owners = R::batch('character',$_POST['characters']);
           foreach($owners as $owner) {
             $owner->sharedCharacter[] = $data;
@@ -146,7 +146,7 @@
           }            
         }
         
-        if( isset( $_POST['group'] ) && is_array( $_POST['group'] ) ) {
+        if( is_array( @$_POST['group'] ) ) {
           $owners = R::batch('group',$_POST['group']);
           foreach($owners as $owner) {
             $owner->sharedCharacter[] = $data;
@@ -156,7 +156,7 @@
       break;
 
       case "playerGroup":
-        if( isset( $_POST['players'] ) && is_array( $_POST['players'] ) ) {
+        if( is_array( @$_POST['players'] ) ) {
           $owners = R::batch('player',$_POST['players']);
           foreach($owners as $owner) {
             $owner->sharedCharacter[] = $data;
@@ -166,7 +166,7 @@
       break;        
       
       case "characterGroup":
-        if( isset( $_POST['characters'] ) && is_array( $_POST['characters'] ) ) { 
+        if( is_array( @$_POST['characters'] ) ) { 
           $owners = R::batch('character',$_POST['characters']);
           foreach($owners as $owner) {
             $owner->sharedCharacter[] = $data;
@@ -191,13 +191,15 @@
     $ids = isset($_GET['id']) ?
       is_array($_GET['id']) ? $_GET['id'] : array($_GET['id']) : false;
     
-    if( stristr($_GET['type'], 'group') ) {
+    $type = $_GET['type'];
+    
+    if( stristr($type, 'group') ) {
       $where = ' type = ? ORDER BY updated DESC ';
       $type = 'group';
-      $arg = $_GET['type'];
+      $arg = $type;
     } else {
       $where = ' 1 = ? ORDER BY updated DESC ';
-      $type = $_GET['type'];
+      $type = $type;
       $arg = "1";
     }
     
@@ -214,7 +216,7 @@
           'type' => $item->type
         );
     
-        if( $_GET['type'] != "game" ) {
+        if( $type != "game" ) {
           $data['game'] = array(
             'id' => $item->game->id,
             'name' => $item->game->name
@@ -222,7 +224,7 @@
         }        
     
       if ($item->id) {
-        switch ($_GET['type']) {
+        switch ($type) {
           case  "game":
             $data['players'] = collectData($item->ownPlayer);
             $data['chars'] = collectData($item->ownCharacter);
