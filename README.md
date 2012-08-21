@@ -12,7 +12,8 @@ Ideas
 * Internal, threded(?) messaging system
 * No-hassle signup (google/Facebook/whatever)
 * Emphasis on images and video
-* in the future, ticket sale
+* Porting players/characters between games
+* In the future, ticket sale
 * https://github.com/bartaz/impress.js
 * http://www.frequency-decoder.com/demo/slabText/
 * http://www.jscraft.net/plugins/craftmap.html
