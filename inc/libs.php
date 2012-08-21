@@ -13,6 +13,11 @@ require_once('libs/mimvic/uvic.php');
 require_once 'libs/auth/auth.php';
 $auth = new Auth();
 //Flash messaging class
-require_once('libs/class.messages.php');
-$msg = new Messages();
+require_once('libs/class.flash-messages.php');
+$msg = new Flash();
+
+//Messaging class
+require_once('libs/class.pm.php');
+$pm = new Message();
+
 ?>
