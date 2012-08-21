@@ -47,9 +47,6 @@ $(document).ready(function(){
   $("#show").on("change","select", function(){ 
     var type = $(this).attr("name").replace("show:","");
     $.post("engine.php",{action:'get', type:type, id:$(this).val()}, function(resp){ 
-    
-    console.log(resp);
-    
       switch(type) {
         case "game":
           show("player", resp[0].players);

@@ -124,7 +124,7 @@ class Auth {
       R::store($user);
       return $user->code;
     }
-    return false;    
+    return false;
   }
 
   public function validateReset($email,$code,$new_pass) {

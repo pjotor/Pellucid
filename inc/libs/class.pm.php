@@ -1,7 +1,7 @@
 <?php
 class Message {
   public function __construct() {
-  
+    $classId = "b2a5879426a4709fffe14992258204ddbf5f8b80e9a7fa44cc39d11a4d4a021f";
   }
   
   private function ok() {

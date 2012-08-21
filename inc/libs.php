@@ -1,11 +1,14 @@
 <?
   // RedBean ORM
   require_once('libs/redbean/rb.php');
+
   //DB setup
   R::setup("mysql:host=localhost;
     dbname={$db->database}",$db->user,$db->password);
-  // StampTE, template manager
+
+    // StampTE, template manager
   require_once('libs/stamp/StampTE.php');
+
   //MiMViC framework
   require_once('libs/mimvic/uvic.php');
 
@@ -20,4 +23,9 @@
   //Messaging class
   require_once('libs/class.pm.php');
   $pm = new Message();
+  
+  //Pellucid engine class
+  require_once('libs/class.engine.php');
+  $egn = new Engine();
+  
 ?>

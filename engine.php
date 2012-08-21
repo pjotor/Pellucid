@@ -12,11 +12,13 @@
   ****/  
   //Format and kill with JSONP
   function jsonp($data) { 
-    $callback = @$_REQUEST["callback"];
+    $callback = filter_input(INPUT_GET, "callback", FILTER_SANITIZE_STRING);
     $json = json_encode($data);
     header("Content-type: application/json");
     die( ($callback) ? "$callback(" . $json . ");" : $json );
   }
+  
+  $my_string = filter_input(INPUT_GET, ‘my_string’, FILTER_SANITIZE_STRING);
   
   //Strip out representational data from bean
   function collectData($container) {
@@ -45,6 +47,12 @@
       if( count($attributes) > 0 ) R::attribute($bean, $attributes);
     }
   }
+  
+  function s  ($s) { return filter_input(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_STRING); }
+  function i  ($s) { return filter_input(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_NUMBER_INT); }
+  function e  ($s) { return filter_input(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_EMAIL); }
+  function a_s($s) { return filter_input_array(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_STRING); }
+  function a_i($s) { return filter_input_array(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_NUMBER_INT); }
     
   /****
   Engine
@@ -54,8 +62,8 @@
   if (isset($_POST['type'])) {
   
     $rNow = R::$f->now();
-    $type = $_POST['type'];
-    $id = @$_POST['id'];
+    $type = s('type');
+    $id = i('id');
     $data = R::load($type, $id);
     
     if (!$data->id) {
@@ -70,18 +78,18 @@
       if( $type != "realation"){
         //Name is used for human readable representation in lists and are _not_ unique
         if( !@$_POST['name'] ) die("missing name");
-        $data->name = $_POST['name'];  
+        $data->name = s('name');  
       }
       
       //Every entety belongs to a game (unless it's a game)
-      $game = @$_POST['game'];
+      $game = i('game');
       if( $type != "game" && !strlen( $game ) ) { 
         jsonp( array( "error" => "missing game" ) );
       }
 
     } else {
       $data->updated = $rNow;
-      $overWrite = isset($_POST['overwrite']);
+      $overWrite = isset(i('overwrite'));
     }
 
     //Extra percousion, $overWrite
