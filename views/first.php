@@ -5,7 +5,7 @@
 </head>
 <body>
 
-<h3>login</h3>
+<h3><a href="login">login</a></h3>
 
 <h3>games</h3>
 
