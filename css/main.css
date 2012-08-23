@@ -1,0 +1,75 @@
+@import url(http://fonts.googleapis.com/css?family=Londrina+Solid);
+.signin {
+    padding: 1em;                
+    font-family: 'Londrina Solid', cursive;
+    font-size: 2em;
+    color: #222;
+    right: .25em; 
+    display: none;
+    margin: 0 auto;
+    background: #777;
+    border-radius: 0 0 .3em .3em;
+    box-shadow: 0 .05em .05em rgba(0,0,0,.1);
+}
+
+.signin input {
+    font-family: 'Londrina Solid', cursive;
+    border: .2em solid transparent;
+    box-shadow: 0 0 .5em rgba(0,0,0,.2), 0 .25em .75em -.25em rgba(0,0,0,.5), 0 .1em .25em rgba(0,0,0,.2) inset;
+    font-size: .75em;
+    outline: 0;
+    width: 200px;
+    border-radius: .25em;
+    padding: .2em;
+    color: #333;
+    text-align: center;
+}
+.signin input:focus {
+    border-color: rgba(255,255,0,.5);
+}    
+.signin input[type='button'] {
+    border: none;
+    box-shadow: 0 0 .5em rgba(0,0,0,.2),0 .25em .75em -.25em rgba(0,0,0,.5), 0 0 .25em rgba(0,0,0,.2) inset;
+    border: .2em solid transparent;
+    background-color: #9c0;
+    width: 75px;
+    color: #ffd;
+    text-shadow: 0 0 .2em rgba(0,0,0,.45);
+}
+.signin input[type='button']:active {
+    border-color: rgba(255,255,0,.25);
+    box-shadow: 0 0 .25em rgba(0,0,0,.5), 0 0 .25em rgba(0,0,0,.2) inset;    
+}    
+.signin hr {
+    border: .07em solid rgba(255,255,255,.1);
+    box-shadow: 0 0 .2em rgba(0,0,0,.2);
+    border-radius: .25em;
+}
+.signin input[value='facebook'] {
+    background-color: #08c;
+    width: 30%;
+}
+.signin input[value='google'] {
+    background-color: #f20;
+    width: 30%;
+}
+.signin input[value='signup'] {
+    background-color: #f04;
+    width: 30%;
+}
+.signin .signup {
+    display: none;
+}
+.signin input[type='button'].signup {
+    width: 217px;
+    background-color: #f04;
+}
+
+body {
+    font-family: Helvetica, Arial;
+    font-weight: 700;
+}
+a {
+    color: #ccc;
+}
+?
