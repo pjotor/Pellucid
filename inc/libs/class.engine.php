@@ -80,8 +80,7 @@ class Engine {
       }
       
       //Every entety belongs to a game (unless it's a game)
-      $game = $p['game'];
-      if( $type != "game" && !strlen( $game ) ) { 
+      if( $type != "game" && !isset( $p['game'] ) ) { 
         $this->jsonp( array( "error" => "missing game" ) );
       }
 
@@ -94,6 +93,7 @@ class Engine {
     //Main save rutine
     switch ($type) {
       case  "game":
+		if( !$bean->creator ) $bean->creator = $_SESSION['user_id'];
       break;
       
       case "player":
@@ -293,7 +293,8 @@ class Engine {
       }
       $rows[] = $data;
     }
-    return (count($rows) > 1 ) ? $rows : $rows[0];
+	
+    return (count($rows) == 1 ) ? $rows[0] : $rows;
   }
 }
 ?>

@@ -4,7 +4,7 @@
 
 Copyright (c) 2010 Zohaib Sibt-e-Hassan ( MaXPert )
 
-MiMViC v0.9.10
+MiMViC Shift v0.9.9
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -65,6 +65,28 @@ $uvicConfig = array();
 $uvicConfig['maps'] = array( );
 
 /**
+* Chain associative array for chains
+* 
+* @var array
+*/
+$uvicConfig['chains'] = array( );
+$uvicConfig['chainPrefix'] = ':';
+
+/**
+ * Associative array fro holding the request data
+ * 
+ * @var array
+ */
+$uvicConfig['reqData'] = array( );
+
+/**
+ * Emulate REST variable
+ * 
+ * @var string
+ */
+$uvicConfig['emulateREST'] = FALSE;
+
+/**
 * Associative array for holding the user stored data
 * 
 * @var array
@@ -77,6 +99,20 @@ $uvicConfig['userData'] = array( );
 * @var array
 */
 $uvicConfig['bechmark'] = array( );
+
+/**
+ * Get the request data if exists or return FALSE
+ * 
+ * @param string $name name of the request parameter
+ */
+function request($name) {
+	global $uvicConfig;
+
+	if(is_string($name) && isset($uvicConfig['reqData'][$name])) {
+		return $uvicConfig['reqData'][$name];
+	}
+	return FALSE;
+}
 
 /**
 * Store the user associated data key value pairs
@@ -104,6 +140,41 @@ function retrieve($name){
 }
 
 /**
+* Tell if mod_rewrite is detected
+* 
+* @return boolean true if detected false otherwise
+*/
+function isModRewrite(){
+	global $uvicConfig;
+	if( isset($uvicConfig['mod_rewrite_detected']) )
+		return $uvicConfig['mod_rewrite_detected'];
+	
+	$req=$_SERVER['REQUEST_URI'];
+	$page=$_SERVER['SCRIPT_NAME'];
+	
+	if ( stripos($req, $page) === FALSE && isset( $_SERVER['REDIRECT_URI'] ) )
+		$uvicConfig['mod_rewrite_detected'] = true;
+	else
+		$uvicConfig['mod_rewrite_detected'] = false;
+	
+	return $uvicConfig['mod_rewrite_detected'];
+}
+
+/**
+ * Set and retrieve emulate REST parameter
+ */
+function uemulateREST($param = NULL) {
+	global $uvicConfig;
+
+	if(is_string($param) || $param === FALSE) {
+		$uvicConfig['emulateREST'] = $param;
+	}
+	else {
+		return $uvicConfig['emulateREST'];
+	}
+}
+
+/**
 * Remove the regular expression ?.+ from URL
 *
 * @param string $url url to strip get parameters from it
@@ -127,26 +198,23 @@ function ugetURI(){
 	if( stripos($req, $page) === FALSE && isset( $_SERVER['REDIRECT_URL'] ) ){
 		$page = explode('/', $page);
 		$page = array_slice($page, 0, -1);
-		if (count($page) > 1){
-			$page = join('/', $page).'/';
-		}else{
+		if (count($page) > 1)
+			$page = join('/', $page)."/";
+		else
 			$page = '';
-		}
 	}
 	
 	//Bug fix 2/20/2008 if no index.php was present at the end :D
-	if(strlen($req)<strlen($page)){
+	if(strlen($req)<strlen($page))
 		$req=$page;
-	}
 	
 	
 	//make sure the end part exists...
 	$req=str_replace($page,'',$req);
 	
-	// if the starting '/' is missing preppend it
-	if(strlen($req)=== 0 || $req[0]!=='/'){
+	// if the starting '/' is missing append it
+	if(strlen($req)=== 0 || $req[0]!=='/')
 		$req = '/'.$req;
-	}
 	
 	return $req;
 }
@@ -157,7 +225,42 @@ function ugetURI(){
 * @return string lowered case request methond ( currently supporting GET, PUT, DELETE, POST)
 */
 function ugetReqMethod(){
+	if(isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])){
+	  return strtolower($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+	}
+
 	return strtolower( $_SERVER['REQUEST_METHOD'] );
+}
+
+/**
+ * Populate request data based on the HTTP Request Method
+ * 
+ * Can also be 
+ */
+function usetReqData($data = NULL){
+	global $uvicConfig;
+
+	if(is_array($data)) {
+		$uvicConfig['reqData'] = array_merge($uvicConfig['reqData'], $data);
+	}
+	else {
+		switch(ugetReqMethod()) {
+			case 'get':
+				$uvicConfig['reqData'] = array_merge($uvicConfig['reqData'], $_GET);
+				break;
+			case 'post':
+				$uvicConfig['reqData'] = array_merge($uvicConfig['reqData'], $_POST);
+				break;
+			case 'put':
+				$_PUT = array();
+				parse_str(file_get_contents('php://input'), $_PUT);
+				$uvicConfig['reqData'] = array_merge($uvicConfig['reqData'], $_PUT);
+				break;
+			case 'delete':
+				break;
+			default:
+		}
+	}
 }
 
 /**
@@ -179,8 +282,8 @@ function uescapeForRegex($str){
 * @return string a compiled regular expression string 
 */ 
 function ucompileExpression($elms){
-	$namedParamRex = '([^\/]+)';
-	$anyParamRex = '(.*)';
+	$namedParamRex = "(.+)";
+	$anyParamRex = "(.*)";
 	$exp = array();
 	foreach($elms as $elm){
 		//For named parameter
@@ -194,7 +297,7 @@ function ucompileExpression($elms){
 		$exp[] = $v;
 	}
 	
-	return '/^'.implode('\/', $exp).'$/i';
+	return "/^".implode("\/", $exp)."$/i";
 }
 
 /**
@@ -217,19 +320,17 @@ function uparseURIParams($pattern, $ur){
 	$m = preg_match($exp, $ur, $matches);
 	
 	//If matching fails return false
-	if(!$m){
+	if(!$m)
 		return false;
-	}
 	
 	//Map and populate values from matched $matches to returnable string
 	$ret = array('segments' => array());
 	$i = 1;
 	foreach($psegs as $pseg){
-		if(strlen($pseg) && $pseg[0] == ':'){
+		if(strlen($pseg) && $pseg[0] == ':')
 			$ret[substr($pseg, 1)] = $matches[$i++];
-		}elseif($pseg === '*'){
+		elseif($pseg === '*')
 			$ret['segments'][] = explode('/', $matches[$i++]);
-		}
 	}
 	return $ret;
 }
@@ -243,9 +344,8 @@ function uparseURIParams($pattern, $ur){
 function ucallIfCallable($obj, $params){
 	$func_name = '';
 	$isCallable = is_callable($obj, true, $func_name);
-	if($isCallable){
+	if($isCallable)
 		return call_user_func($obj, $params);
-	}
 	throw new NotCallableException();
 }
 	
@@ -273,7 +373,7 @@ function utriggerFunction($uri, $method){
 	global $uvicConfig;
 	$map = &$uvicConfig['maps'];
 	
-	foreach($map[$method] as $patrn => $info){
+	foreach($map as $patrn => $info){
 		//Try to match
 		$cParams = uparseURIParams($patrn, $uri);
 		$ret = false;
@@ -282,26 +382,26 @@ function utriggerFunction($uri, $method){
 		{
 			// Select the first fit method and call it
 			foreach($info as $inf){
-				if( $inf['agent'] === false || preg_match($inf['agent'], $_SERVER['HTTP_USER_AGENT']) > 0 ){
+				if($inf['method'] == $method && ( $inf['agent'] === false || preg_match($inf['agent'], $_SERVER['HTTP_USER_AGENT']) > 0 ) ){
 					if( is_array($inf['func']) ){
-						if( count($inf['func']) == 2 && is_string($inf['func'][1]) ){
-							$ret = ucallNHandle($inf['func'], $cParams);
-						}else{
-							//Chained call from array
-							$ret = array();
-							foreach($inf['func'] as $arg){
-								if( is_callable($arg) ){
-									$ret[] = ucallNHandle($arg, $cParams);
-								}
-							}
+						try{
+							$ret = ucallIfCallable($inf['func'], $cParams);
+							return $ret;
+						}catch(NotCallableException $m){
 						}
+						//Chained call from array
+						$ret = array();
+						foreach($inf['func'] as $arg)
+							if( is_callable($arg) )
+								$ret[] = ucallNHandle($arg, $cParams);
 					}elseif( is_callable( $inf['func']) ){
 						//If string or function handler
 						$ret = ucallNHandle($inf['func'], $cParams);
 					}
-					return $ret;
+					return $ret || true;
 				}
 			}
+			break;
 		}
 	}
 	
@@ -322,33 +422,23 @@ function dispatch($method, $uri, $func, $agent = false){
 	$map = &$uvicConfig['maps'];
     
 	// for all methods *
-    if($method == '*'){
+    if($method == '*')
         $method = array('get','post','put','delete');
-	}
 	
 	//--If method was array then for all methods register the function
-	if( is_array($method) ){
-		foreach($method as $mthd){
+	if( is_array($method) )
+		foreach($method as $mthd)
 			dispatch($mthd, $uri, $func, $agent = false);
-		}
-		return;
-	}//--If URI was array then for all URIs register the function
-	elseif( is_array($uri) ){
-		foreach($uri as $one_url){
+	
+	//--If URI was array then for all URIs register the function
+	if( is_array($uri) )
+		foreach($uri as $one_url)
 			dispatch($methd, $one_url, $func, $agent = false);
-		}
-		return;
-	}
 	
-	if( !isset($map[$method]) ){
-		$map[$method] = array();
-	}
+	if( !isset($map[$uri]) )
+		$map[$uri] = array();
 	
-	if( !isset($map[$method][$uri]) ){
-		$map[$method][$uri] = array();
-	}
-	
-	$map[$method][$uri][] = array('method'=> $method, 'func'=> $func, 'agent' => $agent);
+	$map[$uri][] = array('method'=> $method, 'func'=> $func, 'agent' => $agent);
 }
 
 /**
@@ -457,19 +547,69 @@ function calcBenchmark($name){
 }
 
 /**
-* Reset a maps variable; useful for creating re-routing mechanism
-* Fitering routes as subset levels
+* register chain name
+* 
+* @param mixed $name name of chain
+* @param mixed ... chain functions
 */
-function reset(){
-	$uvicConfig['maps'] = array();
+function createChain($name){
+	global $uvicConfig;
+	$args = func_get_args();
+	$args = array_slice($args, 1);
+	
+	$uvicConfig['chains'][$uvicConfig['chainPrefix'].$name] = $args;
+}
+
+/**
+* destroy chain name
+* 
+* @param mixed $name name of chain
+*/
+function destroyChain($name){
+	global $uvicConfig;
+	unset($uvicConfig['chains'][$uvicConfig['chainPrefix'].$name]);
+}
+
+/**
+* call chains with given function and chain names; if input type is string the 
+* mimivic first tries to resolve chain of such name, if no such named chain (created from createChain)
+* is found mimvic then tries to resolve it as a function
+* 
+* @param mixed ... name of chains or functions
+*/
+function chain(){
+	global $uvicConfig;
+	
+	$ret = array();
+	$chain = &$uvicConfig['chains'];
+	$chainPrefix = $uvicConfig['chainPrefix'];
+	$args = func_get_args();
+	
+	foreach($args as $name){
+		if( is_string($name) && isset($chain[$chainPrefix.$name]) )
+			$ret = array_merge($ret, $chain[$chainPrefix.$name]);
+		else if( is_callable($name) )
+			$ret[] = $name;
+	}
+	
+	return $ret;
 }
 
 /**
 * start engine
 */
 function start(){
-	$url = ugetURI();
-	$ret = utriggerFunction( $url , ugetReqMethod() );
+	usetReqData();
+
+	$uri = ugetURI();
+	$method = ugetReqMethod();
+
+	// Emulated REST
+	if(request(uemulateREST())) {
+		$method = strtolower(request(uemulateREST()));
+	}
+
+	$ret = utriggerFunction( $uri , $method );
 	return $ret;
 }
 

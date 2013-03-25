@@ -4,16 +4,18 @@
 	<title><?= $title; ?></title>
 </head>
 <body>
+<h1><?= $game->name; ?></h1>
 
-<h3>create game</h3>
-
-<h3>list players</h3>
-
-<h3>list characters</h3>
-
-<h3>list groups</h3>
-
-<h3>list plots</h3>
-
+<?php
+	echo "<hr/><pre>Info:\n\n";
+	var_dump($info); 
+	echo "</pre>";	
+	echo "<hr/><pre>Game:\n\n";
+	var_dump($game); 
+	echo "</pre>";	
+	echo "<hr/><pre>Session:\n\n";
+	var_dump($_SESSION['user_id']); 
+	echo "</pre>";		
+?>
 </body>
 </html>

@@ -4,8 +4,10 @@
 	<title><?= $title; ?></title>
 </head>
 <body>
-
-<? var_dump($object); ?>
-
+<?php
+	echo "<hr/><pre>Debug:\n\n";
+	var_dump($object); 
+	echo "</pre>";	
+?>
 </body>
 </html>

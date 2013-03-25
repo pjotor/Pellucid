@@ -1,4 +1,4 @@
-/* CSS Document */
+ï»¿/* CSS Document */
 
 body{text-align:center; margin:0; padding:0; font-family:Lucida Grande, Arial; font-size:13px; background-color:#ebebeb; color:#464646; }
 
@@ -45,11 +45,9 @@ a:hover{color:#f7941d;}
 
 .box{border:1px solid #bab9b9; padding:10px; width:600px; color:#707070; font-size:14px; }
 
-.box½{border:1px solid #bab9b9; padding:10px; width:287px; color:#707070; font-size:14px; }
-
 .box2{border:1px solid #bab9b9; padding:10px; width:400px; color:#707070; font-size:14px; }
 
-.com_btn{margin:0px; padding:10px 20px; border:0px; background-color:#f7941d; color:#fff; font-size:14px; min-width: 50px; }
+.com_btn{margin:0px; padding:10px 20px; border:0px; background-color:#f7941d; color:#fff; font-size:14px; }
 
 
 
@@ -58,9 +56,11 @@ a:hover{color:#f7941d;}
 
 .check{ margin:25px; text-align:left; padding:10px 15px; border:1px solid #bab9b9; background-color:#f7f7f7;}
 
-.good{ background: url(../images/check.gif) no-repeat center left; padding-left: 28px; }
+.good{}
 
-.bad{ background: url(../images/x.gif) no-repeat center left; padding-left: 28px;}
+.icon{padding-right:8px; float:left;}
+
+.bad{}
 
 
 /*..................................................... Navigation .....................*/	
@@ -75,16 +75,6 @@ a:hover{color:#f7941d;}
 .navigation li a{float:left; color:#fff; margin: 0; font-size: 14px; text-decoration: none; padding:20px 30px;  }
 
 .navigation li a:hover, .navigation li .active { color:#FFFFFF; background-color:#30a4b1; }
-
-
-.navigation ul.sub{ margin:0px; padding:0px; border-top: .4em solid #30a4b1; background-color:#30a4b1; width: 100%; display: inline-block; }
-
-.navigation ul.sub li{list-style:none; float: left; margin: 0; padding: 0; font-weight:normal; background-color:#30a4b1; }
-
-.navigation ul.sub li a{float:left; color:#fff; margin: 0; font-size: 14px; text-decoration: none; padding:20px 30px;  }
-
-.navigation ul.sub li a:hover, .navigation ul.sub li .active { color:#FFFFFF; background-color:#464646; }
-
 
 .clear{clear:both;}
 
@@ -116,7 +106,7 @@ td { padding: 12px; text-align:left; }
 
 .table_main { border-top: 1px solid #bab9b9; border-right: 1px solid #bab9b9; border-left: 1px solid #bab9b9;}
 
-.table_main .delete { background:url(../images/x2.gif) center left no-repeat; padding-left:12px;}
+.table_main .delete {background:url(images/x2.gif) center left no-repeat; padding-left:12px;}
 
 tr td {border-bottom: 1px solid #bab9b9;}
 

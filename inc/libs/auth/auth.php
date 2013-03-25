@@ -3,7 +3,7 @@ class Auth {
   private $_siteKey;
 
   public function __construct() {
-    $this->siteKey = "88904dfadc657ffabae4f22046c2a3e9b2862e53367d640774e0b2881e0e5866";
+    $this->siteKey = "88904dfadc657ffabae4f22046c2a3e9b2862e53367d640774e0b2881e0e5866"; // TODO: Generate on install
     $this->start();
   }
 
