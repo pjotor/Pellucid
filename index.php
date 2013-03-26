@@ -246,8 +246,8 @@ mvc\get('/my',
 mvc\get('/login', 
 	function (){
     if( isOk() ) {
-      echo "already logged in!";
-      return;
+	  $user = user();	
+      die("{name:'" . $user->name . "',loggedIn:true}");
     }
 ?>
 <form action="login" method="POST">
@@ -259,26 +259,44 @@ mvc\get('/login',
 	}
 );
 
+mvc\post('/login/:ext', 
+	function ($p){
+		if( isOk() ) {
+		  $user = user();
+		  die('{"name":"' . $user->name . '","loggedIn":true}');
+		}
+
+		switch($p['ext']) {
+			case "google":
+				$url = "https://www.googleapis.com/oauth2/v1/tokeninfo";
+				$resp = curl_json($url . "?access_token=" . $_POST['access_token']);
+				$user = $GLOBALS['auth']->loginWithToken($resp["user_id"]);  
+			break;
+		} 
+		die($user ? '{"name":"' . $user->name . '","loggedIn":true}' : '{"loggedIn":false}');
+	}
+);
+
 mvc\post('/login', 
 	function (){
-    if( isOk() ) {
-      echo "already logged in!";
-      return;
-    }
-    
-    $user = $GLOBALS['auth']->login($_POST['email'], $_POST['pass']);
-    echo $user ? "logged in!" : "ops!";
+		if( isOk() ) {
+		  $user = user();
+		  die('{"name":"' . $user->name . '","loggedIn":true}');
+		}
+		
+		$user = $GLOBALS['auth']->login($_POST['email'], $_POST['pass']);
+		die($user ? '{"name":"' . $user->name . '","loggedIn":true}' : '{"loggedIn":false}');
 	}
 );
 
 mvc\get('/logout', 
 	function (){
-    if( !isOk() ) {
-      echo "ok";
-      return;
-    }
-    $GLOBALS['auth']->logout();
-    echo "bye!";
+		if( !isOk() ) {
+		die('{"loggedIn":false}');
+		}
+		
+		$GLOBALS['auth']->logout();
+		die('{"loggedIn":false}');
 	}
 );
 
@@ -353,7 +371,19 @@ mvc\post('/signup',
     echo $user ? "activation code sent (" . $user->code . ")" : 'failed in crating user';
 	}
 );
-
+mvc\post('/signup/:ext', 
+	function ($p){
+		switch($p['ext']) {
+			case "google":
+				$url = "https://www.googleapis.com/oauth2/v1/tokeninfo";
+				$resp = curl_json($url . "?access_token=" . $_POST['access_token']);
+				$user = $GLOBALS['auth']->createUserFromToken($resp);  
+			break;
+		} 
+		
+    echo $user ? "user created from token" : 'failed in crating user';
+	}
+);
   //==================================
   //debug methods
   //==================================
@@ -375,17 +405,9 @@ mvc\get('/warm', function(){
 mvc\get('/test', function(){
   //echo '<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>';
   
-  $bean = R::find('game',1);
-  $p = array(
-    "name" => 'Game One',
-    "tags" => 'fun, loving, death',
-    "attrib" => array(
-      'type' =>  array("gengre","players"),
-      'value'=>  array("horror","8-10")
-    )
-  );
-  
-  var_dump( $GLOBALS['egn']->get("player") );
+  $user = user();
+  var_dump( $GLOBALS['egn']->get("user", $user->id) );
+
 });
 
   //==================================
@@ -420,6 +442,8 @@ mvc\get('/admin/players',
 		canAccess($data, true);
 		
 		$data['players'] = $GLOBALS['egn']->get("player");
+		
+		var_dump($data);
 		
 		mvc\render(
 			'views/admin.php', 
@@ -551,6 +575,44 @@ function a_s($s) {
 }
 function a_i($s) { 
   return filter_input_array(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_NUMBER_INT); 
+}
+function curl_json($base_url, $json=true){
+
+		$ch = curl_init();
+		$headers = array();
+		if($json) {
+				$headers = array(
+					'Content-type: application/json',
+					'X-HTTP-Method-Override: GET'
+				);
+		}
+		$options = array(
+			CURLOPT_URL => $base_url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_HTTPHEADER => $headers,
+			CURLOPT_TIMEOUT => 5,
+			CURLOPT_RETURNTRANSFER => 1,
+			CURLOPT_HEADER => 0,
+			CURLOPT_FOLLOWLOCATION => 1,
+			CURLOPT_MAXREDIRS => 3,
+			CURLOPT_SSL_VERIFYHOST => 0,
+			CURLOPT_SSL_VERIFYPEER => 0
+		);
+
+		curl_setopt_array($ch, $options);
+		
+		$response = curl_exec($ch);
+		
+		echo curl_error($ch);
+		echo "\n";
+		
+		if($response === false || curl_error($ch)) {
+				curl_close($ch);
+				return false;
+		} else {
+				curl_close($ch);
+				return json_decode($response, true);
+		}
 }
 
 //Render

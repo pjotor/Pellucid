@@ -79,15 +79,20 @@ class Engine {
         $bean->name = $p['name'];  
       }
       
-      //Every entety belongs to a game (unless it's a game)
-      if( $type != "game" && !isset( $p['game'] ) ) { 
+      //Every entety belongs to a game (unless it's a game, user or player)
+      if( !in_array($type, array("game","user","player")) && !isset( $p['game'] ) ) { 
         $this->jsonp( array( "error" => "missing game" ) );
       }
 
+      //Every player belongs to a user
+      if( $type == "player" && !isset( $p['user'] ) ) { 
+        $this->jsonp( array( "error" => "missing user" ) );
+      }
+	  
+	  
     } else {
       $bean->updated = $rNow;
       $overWrite = isset($p['overwrite']);
-      
     }
     
     //Main save rutine
@@ -97,7 +102,11 @@ class Engine {
       break;
       
       case "player":
-        $bean->active = false;
+		$owner = R::findOne('user',$p['user']);
+		if(!$owner) $this->jsonp( array( "error" => "missing user" ) );
+		
+		$owner->hasPlayer = $bean;
+		R::store($owner);
       break;
       
       case "character":
@@ -154,6 +163,24 @@ class Engine {
           }            
         }
       break;
+
+      case "group":
+        if( is_array( @$p['players'] ) ) {
+          $owners = R::batch('player',$p['players']);
+          foreach($owners as $owner) {
+            $owner->sharedCharacter[] = $bean;
+            R::store($owner);
+          }             
+        }
+		
+        if( is_array( @$p['characters'] ) ) { 
+          $owners = R::batch('character',$p['characters']);
+          foreach($owners as $owner) {
+            $owner->sharedCharacter[] = $bean;
+            R::store($owner);
+          }             
+        }		
+      break;    	  
 
       case "playerGroup":
         if( is_array( @$p['players'] ) ) {
@@ -220,13 +247,20 @@ class Engine {
       if ($item->id) {
         switch ($type) {
           case  "game":
-            $data['players'] = $this->collectData($item->ownPlayer);
+//            $data['players'] = $this->collectData($item->ownPlayer);
             $data['chars'] = $this->collectData($item->ownCharacter);
             $data['groups'] = $this->collectData($item->ownGroup);
             $data['plots'] = $this->collectData($item->ownPlot);
             
           break;
           
+          case "user":
+            $data['player'] = $this->collectData($item->ownPlayer);
+            $data['active'] = $item->active;
+
+          break;
+          		  
+		  
           case "player":
             $data['chars'] = $this->collectData($item->sharedCharacter);
             $data['groups'] = $this->collectData($item->sharedGroup);

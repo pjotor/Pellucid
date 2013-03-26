@@ -64,6 +64,47 @@ class Auth {
     }
     return false;
   }
+  
+  public function createUserFromToken($data) {			
+  
+    $user = R::findOne('user', ' google_id = ? ', array($data["user_id"]));
+
+	//User exists, don't create a new one
+    if(!$user) {
+      //Generate users salt
+      $user_salt = $this->randomString();
+          
+      //Salt and Hash the password
+      $password = $user_salt . $data["user_id"];
+      $password = $this->hashData($password);
+
+      //Commit values to database here.
+      $user = R::dispense('user');
+      $user->email = $data["email"];
+      $user->created = R::$f->now();
+      $user->admin = false;
+      $user->active = true;
+      $user->verified = $data["verified_email"];    
+      $user->session_id = false;
+      $user->token = false;
+      $user->salt = $user_salt;
+      $user->password = $password;
+      $user->code = $this->randomString(16);
+      $user->google_id = $data["user_id"];
+
+      $created = R::store($user);
+      
+      if($created != NULL){
+        $this->log("created", $created);
+		
+		//Auto login users created via google_id
+		if( $this->loginWithToken($data["user_id"]) ) {
+			return $user;
+		}
+      }
+    }
+    return false;
+  }  
 
   public function login($email, $password) {
     //Select users row from database base on $email
@@ -114,6 +155,42 @@ class Auth {
     //No match, reject
     return false;
   }
+
+  public function loginWithToken($google_id) {
+    //Select users row from database base on $email
+    $user = R::findOne('user', ' google_id = ? ', array($google_id));
+
+    if($user) {
+        if((boolean) $user->active) {
+            //Set sessions
+            $token = $_SERVER['HTTP_USER_AGENT'] . $this->randomString();
+            $token = $this->hashData($token);
+              
+            //Setup sessions vars
+            $_SESSION['token'] = $token;
+            $_SESSION['user_id'] = $user->id;
+              
+            $user->session_id = session_id();
+            $user->token = $token;
+            
+            //Logged in
+            if(R::store($user) != null) {
+              $this->log("login", $user->id);
+              return $user;
+            } 
+            
+            $this->log("not logged in?", $user->id);
+            return false;
+
+        } else {
+          $this->log("not active", $user->id);
+          return false;
+        }
+    }
+	
+    //No match, reject
+    return false;
+  }  
   
   //Returns a reset code for mail/link
   public function resetPassword($email) {
