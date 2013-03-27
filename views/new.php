@@ -54,7 +54,11 @@ $(window).load(function(){
 				saveData['characters'] = $("input[name=characters]").val();
 				saveData['group'] = $("input[name=group]").val();
 				group
-			break;				
+			break;			
+/* Remove this from prod */
+			default:
+				
+/* Remove abow from prod */			
 		}
 
 		$.post("/Pellucid/new/<?= $type; ?>",saveData, function(resp) {
@@ -84,8 +88,8 @@ switch($type) {
 	case "character":
 		include "new/character.php";
 	break;
-	case "group":
-echo "Creation of " . $type . " is not implemented yet.";
+//	case "group":
+//echo "Creation of " . $type . " is not implemented yet.";
 //		include "new/group.php";
 	break;
 	case "plot":
@@ -97,7 +101,7 @@ echo "Creation of " . $type . " is not implemented yet.";
 //		include "new/user.php";
 	break; 
 	default:
-		echo "Creation of " . $type . " is not implemented yet.";
+		include "new/default.php";	
 }
 ?>		
     </fieldset>

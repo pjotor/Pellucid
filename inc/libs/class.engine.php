@@ -80,16 +80,21 @@ class Engine {
       }
       
       //Every entety belongs to a game (unless it's a game, user or player)
-      if( !in_array($type, array("game","user","player")) && !isset( $p['game'] ) ) { 
-        $this->jsonp( array( "error" => "missing game" ) );
+      if( !in_array($type, array("game","user")) ) { 
+		if( !isset( $p['game'] ) )
+			$this->jsonp( array( "error" => "missing game" ) );
+			
+	  	$game = R::findOne('game',$p['game']);
+		if( !$gamse ) $this->jsonp( array( "error" => "missing game" ) );
+		
+		$bean->game = $game;  
       }
 
-      //Every player belongs to a user
-      if( $type == "player" && !isset( $p['user'] ) ) { 
-        $this->jsonp( array( "error" => "missing user" ) );
+      //Every player belongs to a user, and a user can have _one_ player
+      if( $type == "player" ) { 
+        if( !isset( $p['user'] ) ) $this->jsonp( array( "error" => "missing user" ) );
       }
-	  
-	  
+	  	  
     } else {
       $bean->updated = $rNow;
       $overWrite = isset($p['overwrite']);
@@ -102,11 +107,9 @@ class Engine {
       break;
       
       case "player":
-		$owner = R::findOne('user',$p['user']);
-		if(!$owner) $this->jsonp( array( "error" => "missing user" ) );
-		
-		$owner->hasPlayer = $bean;
-		R::store($owner);
+	    $user = R::findOne('user',$p['user']);
+		if( !$user ) $this->jsonp( array( "error" => "missing user" ) );
+		$bean->user = $user;
       break;
       
       case "character":
@@ -229,7 +232,8 @@ class Engine {
     $rows = array();
 
     foreach( $items as $item ) {
-      $data = array(
+	
+        $data = array(
           'name' => $item->name,
           'attributes' => R::attribute($item),
           'tags' => R::tag($item),
@@ -237,7 +241,7 @@ class Engine {
           'type' => $item->type
         );
     
-        if( $type != "game" ) {
+        if( $type != "game" && isset($item->game)) {
           $data['game'] = array(
             'id' => $item->game->id,
             'name' => $item->game->name
@@ -328,7 +332,7 @@ class Engine {
       $rows[] = $data;
     }
 	
-    return (count($rows) == 1 ) ? $rows[0] : $rows;
+    return $rows;
   }
 }
 ?>

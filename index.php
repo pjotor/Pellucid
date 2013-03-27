@@ -11,8 +11,29 @@
   //==================================
   //Methods
   //==================================
+ 
   
-
+  //==================================
+  //show methods
+  //==================================  
+  
+// Create new object (form)
+mvc\get('/show/:type/:id', function($p){
+	$data = array(
+		"title" => "show {$p['type']}",
+		"type" => $p['type'],
+		"parent" => false,
+		"user" => user()
+	);
+	
+	$data["content"] = $GLOBALS['egn']->get($p['type'], $p['id']);
+	
+	mvc\render(
+		'views/show.php',
+		$data
+	);      
+});
+  
   //==================================
   //game methods
   //==================================  
@@ -190,7 +211,7 @@ mvc\get('/new/:type', function($p){
 	$data = array(
 		"type" => $p['type'],
 		"parent" => false,
-		"user" => user()		
+		"user" => user()
 	);
 	
 	mvc\render(
@@ -413,100 +434,50 @@ mvc\get('/test', function(){
   //==================================
   //admin methods
   //==================================
-  
+
+mvc\get('/admin/:type/:id', 
+	function ($p){
+		$data = array(
+		  "title" => $p["type"],
+		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
+		  "alerts" => []
+		);
+		
+		canAccess($data, true);
+		
+		$data['content'] = $GLOBALS['egn']->get($p["type"], $p["id"]);
+				
+		mvc\render(
+			'views/admin.php', 
+			$data
+		);
+	}
+);
+
+mvc\get('/admin/:type', 
+	function ($p){
+		$data = array(
+		  "title" => $p["type"],
+		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
+		  "alerts" => [],
+		  "type" => singular($p["type"])
+		);
+		
+		canAccess($data, true);
+
+		$data['content'] = $GLOBALS['egn']->get( $data["type"] );
+				
+		mvc\render(
+			'views/admin.php', 
+			$data
+		);
+	}
+);
+
 mvc\get('/admin', 
 	function (){
 		$data = array(
-		  "title" => "welcome",
-		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
-		  "alerts" => []
-		);
-		
-		canAccess($data, true);
-		
-		mvc\render(
-			'views/admin.php', 
-			$data
-		);
-	}
-);
-
-mvc\get('/admin/players', 
-	function (){
-		$data = array(
-		  "title" => "players",
-		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
-		  "alerts" => []
-		);
-		
-		canAccess($data, true);
-		
-		$data['players'] = $GLOBALS['egn']->get("player");
-		
-		var_dump($data);
-		
-		mvc\render(
-			'views/admin.php', 
-			$data
-		);
-	}
-);
-
-mvc\get('/admin/characters', 
-	function (){
-		$data = array(
-		  "title" => "characters",
-		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
-		  "alerts" => []
-		);
-		
-		canAccess($data, true);
-		
-		mvc\render(
-			'views/admin.php', 
-			$data
-		);
-	}
-);
-
-mvc\get('/admin/plots', 
-	function (){
-		$data = array(
-		  "title" => "plots",
-		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
-		  "alerts" => []
-		);
-		
-		canAccess($data, true);
-		
-		mvc\render(
-			'views/admin.php', 
-			$data
-		);
-	}
-);
-
-mvc\get('/admin/groups', 
-	function (){
-		$data = array(
-		  "title" => "groups",
-		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
-		  "alerts" => []
-		);
-		
-		canAccess($data, true);
-		
-		mvc\render(
-			'views/admin.php', 
-			$data
-		);
-	}
-);
-
-mvc\get('/admin/users', 
-	function (){
-		$data = array(
-		  "title" => "users",
+		  "title" => "overview",
 		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false,
 		  "alerts" => []
 		);
@@ -576,6 +547,10 @@ function a_s($s) {
 function a_i($s) { 
   return filter_input_array(INPUT_GET | INPUT_POST, $s, FILTER_SANITIZE_NUMBER_INT); 
 }
+function singular($s) {
+	return substr($s, -1) == "s" ? substr($s, 0, -1) : $s;
+}
+
 function curl_json($base_url, $json=true){
 
 		$ch = curl_init();
