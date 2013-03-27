@@ -17,7 +17,7 @@
   //show methods
   //==================================  
   
-// Create new object (form)
+// Show item
 mvc\get('/show/:type/:id', function($p){
 	$data = array(
 		"title" => "show {$p['type']}",
@@ -256,7 +256,44 @@ mvc\get('/my/:what',
 mvc\get('/my', 
 	function (){
     if( !isOk() ) return;
-    echo "TODO: my user page";
+    
+    $data = array(
+      "title" => "hello",
+	  "type" => "user"
+    );
+    
+	$fetchUser = $GLOBALS['egn']->get("user", user()->id);
+	if(!$fetchUser) die("no user!");
+
+	$data["user"] = $fetchUser[0];
+	
+	$data["attributes"] = array();
+	if( isset($data["user"]["attributes"]) ) {
+		foreach ($data["user"]["attributes"] as $attrib) {
+			$data["attribute"][$attrib["title"]] = $attrib["value"];
+		}
+	}
+	
+    mvc\render('views/update.php', $data);
+	
+	}
+);
+
+mvc\post('/my', 
+	function ($p){
+    if( !isOk() ) return;
+	
+//	var_dump($_POST);
+	
+    $user = R::findOne('user', ' id = ? ', array($_POST['user_id']) );
+	
+	if( $user->id ) {
+		if( $user->id != $_SESSION['user_id'] ) 
+			die("you can only update yourself");
+	}
+	
+	$userObject = $GLOBALS['egn']->save($_POST, $user);	
+	echo $userObject ? "updated!" : "something whent wrong :(";
 	}
 );
 

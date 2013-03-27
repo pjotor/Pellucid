@@ -64,7 +64,7 @@ class Engine {
         
       $type = $p['type'];
     } else {
-      $type = $bean->type;
+      $type = $bean->getMeta('type');
     }  
     
     //No id, create new
@@ -102,6 +102,9 @@ class Engine {
     
     //Main save rutine
     switch ($type) {
+	  case "user":
+	  break;
+	
       case  "game":
 		if( !$bean->creator ) $bean->creator = $_SESSION['user_id'];
       break;
@@ -206,7 +209,7 @@ class Engine {
       break;          
 
       default:
-      $this->jsonp( array( "error" => "no such method") );
+      $this->jsonp( array( "error" => "no such save/create method ($type)") );
     }
     
     if( isset($p['tags']) ) $this->tags( $bean, $p['tags'] );
@@ -251,7 +254,7 @@ class Engine {
       if ($item->id) {
         switch ($type) {
           case  "game":
-//            $data['players'] = $this->collectData($item->ownPlayer);
+            $data['players'] = $this->collectData($item->ownPlayer);
             $data['chars'] = $this->collectData($item->ownCharacter);
             $data['groups'] = $this->collectData($item->ownGroup);
             $data['plots'] = $this->collectData($item->ownPlot);
@@ -260,6 +263,7 @@ class Engine {
           
           case "user":
             $data['player'] = $this->collectData($item->ownPlayer);
+            $data['email'] = $item->email;
             $data['active'] = $item->active;
 
           break;
@@ -325,7 +329,7 @@ class Engine {
           break;
 
           default:
-          $this->jsonp( array( "error" => "no such method") );
+          $this->jsonp( array( "error" => "no such get method ($type)") );
           
         }
       }

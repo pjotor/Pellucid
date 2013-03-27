@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title>Create a <?= $type; ?>!</title>
+  <title>Update <?= $type; ?>!</title>
   
   <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.2.js'></script>
   <link rel="stylesheet" type="text/css" href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css">
@@ -56,7 +56,7 @@ $(window).load(function(){
 				group
 			break;	
 			case "user":
-		
+				saveData['user_id'] = $("input[name=user_id]").val();
 			break;			
 /* Remove this from prod */
 			default:
@@ -64,7 +64,7 @@ $(window).load(function(){
 /* Remove abow from prod */			
 		}
 
-		$.post("/Pellucid/new/<?= $type; ?>",saveData, function(resp) {
+		$.post("/Pellucid/my",saveData, function(resp) {
 			$("#mod").html(resp).modal();
 		});
 
@@ -100,7 +100,7 @@ echo "Creation of " . $type . " is not implemented yet.";
 //		include "new/plot.php";
 	break;
 	case "user":
-		include "new/user_info.php";
+		include "user_info.php";
 	break; 
 	default:
 		include "new/default.php";	
