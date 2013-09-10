@@ -24,54 +24,70 @@ $(window).load(function(){
 			}		
 
 		var n;
-		$(".attribute").each(function(i,o){ 
+		$(".attribute, .bean").each(function(i,o){ 
 			n = $(o); 
 			if( $.inArray(n.attr("type"), ["radio", "checkbox"]) > -1) {
 				if(n.is(":checked")) {
+					if(n.hasClass("bean")) {
+						saveData[n.attr("name")] = n.val();
+					} else {
+						saveData['attrib[type]'].push(n.attr("name"));
+						saveData['attrib[value]'].push(n.val());
+					}
+				}			
+			} else if(n.val().length) {
+				if(n.hasClass("bean")) {
+					saveData[n.attr("name")] = n.val();
+				} else {			
 					saveData['attrib[type]'].push(n.attr("name"));
 					saveData['attrib[value]'].push(n.val());
-				}			
-			} else {
-				saveData['attrib[type]'].push(n.attr("name"));
-				saveData['attrib[value]'].push(n.val());			
+				}
 			}			
 		});
-		
+/*
 		switch(saveData.type){
 			case "player":
-				saveData['user'] = $("input[name=user_id]").val();		
+				saveData['user'] = $("input[name=user_id]").val();
+				saveData['game'] = $("input[name=game_id]").val();
 			break;
 			case "character":
 				saveData['players'] = $("input[name=players]").val();		
+				saveData['game'] = $("input[name=game_id]").val();
 			break;
 			case "realation":
 				saveData['character[init]'] = $("input[name=inits]").val();		
 				saveData['character[recip]'] = $("input[name=recips]").val();
+				saveData['game'] = $("input[name=game_id]").val();
 			break;
 			case "plot":
-				saveData['parent'] = $("input[name=parent_id]").val() || "";		
-				
-				saveData['characters'] = $("input[name=characters]").val();
-				saveData['group'] = $("input[name=group]").val();
-				group
+				saveData['parent'] = $("input[name=parent_id]").val() || "";
+				saveData['characters'] = $("input[name=characters]").val() || "";
+				saveData['group'] = $("input[name=group]").val() || "";
+				saveData['game'] = $("input[name=game_id]").val();
 			break;	
 			case "user":
 		
-			break;			
-/* Remove this from prod */
-			default:
-				
-/* Remove abow from prod */			
+			break;					
 		}
-
+*/
 		$.post("/Pellucid/new/<?= $type; ?>",saveData, function(resp) {
-			$("#mod").html(resp).modal();
+			var out;
+
+			if(resp.error) {
+				$("#myModalLabel").text("Well, well...");
+				out = $("<span/>", { text: resp.error });
+			} else {
+				resp = JSON.parse(resp);
+				$("#myModalLabel").text("Woot!");
+				out = $("<a/>", { href: resp.link }).text( resp.success ).html();			
+			}
+			$("#mod p").html(out);
+			$("#mod").modal();
 		});
 
 	});
 });//]]>  
 </script>
-
 
 </head>
 <body>
@@ -109,7 +125,20 @@ echo "Creation of " . $type . " is not implemented yet.";
     </fieldset>
   </form>
 
-  <div id="mod" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
+	<!-- Modal -->
+	<div id="mod" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+	  <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="myModalLabel">Well, well...</h3>
+	  </div>
+	  <div class="modal-body">
+		<p></p>
+	  </div>
+	  <div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+	  </div>
+	</div>
+  
 </body>
 
 

@@ -8,7 +8,7 @@
 	<div class="control-group">
 	  <label class="control-label">Full name</label>
 	  <div class="controls">
-		<input id="name" name="name" type="text" placeholder="" class="input-xlarge" required="">
+		<input id="name" name="name" type="text" placeholder="" class="input-xlarge bean" required="">
 	  </div>
 	</div>
 
@@ -17,9 +17,18 @@
 	  <label class="control-label">E-mail</label>
 	  <div class="controls">
 		<input id="email" name="email" type="text" placeholder="" class="input-xlarge attribute" required="" value="<?= $user ? $user->email : '' ?>">
-		<input id="user_id" name="user_id" type="hidden" value="<?= $user->id ?>">
+		<input id="user" name="user" type="hidden" class="bean" value="<?= $user->id ?>">
 	  </div>
 	</div>
+	
+	<!-- Text input-->
+	<div class="control-group">
+	  <label class="control-label">Game</label>
+	  <div class="controls">
+		<input id="game_name" name="game_name" type="text" placeholder="" class="input-xlarge" required="" value="<?= $parent ? $parent->name : '' ?>" disabled="disabled">
+		<input id="game" name="game" type="hidden" class="bean" value="<?= $parent ? $parent->id : '' ?>">
+	  </div>
+	</div>	
 
 	<!-- Text input-->
 	<div class="control-group">

@@ -78,6 +78,24 @@ class Engine {
         if( !isset($p['name']) ) die("missing name");
         $bean->name = $p['name'];  
       }
+
+      //Every player belongs to a user, and a user can have _one_ player per game
+      if( $type == "player" ) { 
+        if( !isset( $p['user'] ) ) 
+			$this->jsonp( array( "error" => "missing user" ) );
+			
+		$player = R::find('player',' game_id = ? AND user_id = ? ', array($p['game'],$p['user']));
+        if( count( $player ) > 0 ) 
+			$this->jsonp( array( 
+				"error" => "this user already has a player in this game, please supply bean" 
+			) );
+			
+	    $user = R::findOne('user',$p['user']);
+		if( !$user ) 
+			$this->jsonp( array( "error" => "missing user" ) );
+			
+		$bean->user = $user;			
+      }
       
       //Every entety belongs to a game (unless it's a game, user or player)
       if( !in_array($type, array("game","user")) ) { 
@@ -85,19 +103,15 @@ class Engine {
 			$this->jsonp( array( "error" => "missing game" ) );
 			
 	  	$game = R::findOne('game',$p['game']);
-		if( !$gamse ) $this->jsonp( array( "error" => "missing game" ) );
+		if( !$game ) 
+			$this->jsonp( array( "error" => "missing game" ) );
 		
 		$bean->game = $game;  
-      }
-
-      //Every player belongs to a user, and a user can have _one_ player
-      if( $type == "player" ) { 
-        if( !isset( $p['user'] ) ) $this->jsonp( array( "error" => "missing user" ) );
       }
 	  	  
     } else {
       $bean->updated = $rNow;
-      $overWrite = isset($p['overwrite']);
+      //$overWrite = isset($p['overwrite']);
     }
     
     //Main save rutine
@@ -110,9 +124,7 @@ class Engine {
       break;
       
       case "player":
-	    $user = R::findOne('user',$p['user']);
-		if( !$user ) $this->jsonp( array( "error" => "missing user" ) );
-		$bean->user = $user;
+
       break;
       
       case "character":
@@ -215,6 +227,8 @@ class Engine {
     if( isset($p['tags']) ) $this->tags( $bean, $p['tags'] );
     if( isset($p['attrib']) ) $this->attributes( $bean, array('type'=>$p['attrib']['type'], 'value'=>$p['attrib']['value']) );
 
+	var_dump($bean);
+	
     return (R::store($bean) != null) ? $bean : false;
   }
 
@@ -265,6 +279,7 @@ class Engine {
             $data['player'] = $this->collectData($item->ownPlayer);
             $data['email'] = $item->email;
             $data['active'] = $item->active;
+            $data['admin'] = $item->admin;			
 
           break;
           		  

@@ -7,7 +7,7 @@
           <!-- Text input-->
           <label class="control-label" for="input01">Name</label>
           <div class="controls">
-            <input type="text" placeholder="a catchy name" class="input-xlarge" name="name">
+            <input type="text" placeholder="a catchy name" class="input-xlarge bean" name="name">
             <p class="help-block">This is the name that will be listed in the games lists</p>
           </div>
         </div>

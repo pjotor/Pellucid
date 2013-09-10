@@ -15,8 +15,8 @@
 <h3><a href="messages">messages</a></h3>
 
 <?php
-	if($user->admin){
-		echo "<h3><a href=\"new_game\">new games</a></h3>";
+	if($user["admin"] == 1){
+		echo "<h3><a href=\"new\game\">new games</a></h3>";
 	}
 ?>
 

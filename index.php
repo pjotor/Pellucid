@@ -40,7 +40,7 @@ mvc\get('/show/:type/:id', function($p){
   
 mvc\post('/game/:id/:what/:oid/:action', 
   function($p){
-    $object  = R::findOne($p['what'], ' id = ? AND game_id = ?', array($p['oid'], $p['id']) );
+//    $object  = R::findOne($p['what'], ' id = ? AND game_id = ?', array($p['oid'], $p['id']) );
     
     echo "TODO: do " . $p['action'] . " to " . $p['what'] .  " w. id: " . $p['oid'] . " belonging to game id: " . $p['id'];
   }
@@ -223,8 +223,12 @@ mvc\get('/new/:type', function($p){
 // Create new game (save)
 mvc\post('/new/:type', function($p){
 	if(isAdmin()) {
-		$item = $GLOBALS['egn']->save($_POST);	
-		echo "<a href=\"../{$p['type']}/{$item->id}\">{$p['type']} \"{$item->name}\" created</a>";
+		$item = $GLOBALS['egn']->save($_POST);
+		
+		jsonp( array( 
+		"success" => "{$p['type']} \"{$item->name}\" created",
+		"link" => "{$p['type']}/{$item->id}"
+		), false );
 	}
   }
 );
@@ -280,7 +284,7 @@ mvc\get('/my',
 );
 
 mvc\post('/my', 
-	function ($p){
+	function (/*$p*/){
     if( !isOk() ) return;
 	
 //	var_dump($_POST);
@@ -294,6 +298,32 @@ mvc\post('/my',
 	
 	$userObject = $GLOBALS['egn']->save($_POST, $user);	
 	echo $userObject ? "updated!" : "something whent wrong :(";
+	}
+);
+
+mvc\get('/me', 
+	function (){
+    if( !isOk() ) header("Location: /Pellucid/");
+    
+    $data = array(
+      "title" => "hello",
+	  "type" => "user"
+    );
+    
+	$fetchUser = $GLOBALS['egn']->get("user", user()->id);
+	if(!$fetchUser) header("Location: /Pellucid/");
+
+	$data["user"] = $fetchUser[0];
+	
+	$data["attributes"] = array();
+	if( isset($data["user"]["attributes"]) ) {
+		foreach ($data["user"]["attributes"] as $attrib) {
+			$data["attribute"][$attrib["title"]] = $attrib["value"];
+		}
+	}
+	
+    mvc\render('views/me.php', $data);
+	
 	}
 );
 
@@ -412,7 +442,7 @@ mvc\get('/user/verify/:email/:code',
   //==================================
  
 mvc\get('/signup', 
-	function ($p){
+	function (/*$p*/){
 ?>
 <form action="signup" method="POST">
   <input type="text" name="email" placeholder="email">
@@ -424,7 +454,7 @@ mvc\get('/signup',
 );
 
 mvc\post('/signup', 
-	function ($p){
+	function (/*$p*/){
     $user = $GLOBALS['auth']->createUser($_POST['email'], $_POST['pass']);  
     echo $user ? "activation code sent (" . $user->code . ")" : 'failed in crating user';
 	}
@@ -447,7 +477,8 @@ mvc\post('/signup/:ext',
   //==================================
   
 mvc\get('/warm', function(){ 
-  $bean = R::find('game',1);
+  //$bean = R::find('game',1);
+ /*
   $p = array(
     "name" => 'Game One',
     "tags" => 'fun, loving, death',
@@ -456,7 +487,7 @@ mvc\get('/warm', function(){
       'value'=>  array("horror","8-10")
     )
   );
-  
+ */
   var_dump( $GLOBALS['egn']->get("player") );
 });
 
@@ -521,6 +552,11 @@ mvc\get('/admin',
 		
 		canAccess($data, true);
 		
+		$data['contents'] = array(
+			"players" => $GLOBALS['egn']->get( "player" ),
+			"games" => $GLOBALS['egn']->get( "game" )
+		);
+		
 		mvc\render(
 			'views/admin.php', 
 			$data
@@ -538,6 +574,8 @@ mvc\get('/',
 		  "title" => "welcome",
 		  "user" => isOk() ? R::findOne('user', ' id = ?', array($_SESSION['user_id'])) : false
 		);
+		
+		if($data["user"]) header("Location: /Pellucid/me");
 		
 		mvc\render(
 			'views/first.php', 
@@ -626,6 +664,15 @@ function curl_json($base_url, $json=true){
 				return json_decode($response, true);
 		}
 }
-
+function jsonp($data, $kill = true) { 
+	$callback = filter_input(INPUT_GET, "callback", FILTER_SANITIZE_STRING);
+	$json = json_encode($data);
+	$ret = ($callback) ? "$callback(" . $json . ");" : $json;
+	if($kill){ 
+	  header("Content-type: application/json");
+	  die( $ret );
+	}
+	echo $ret;
+}
 //Render
 mvc\start();

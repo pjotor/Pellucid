@@ -15,7 +15,7 @@
 		}
 	?>
 		  <tr class="gray">
-			<td><a href="/Pellucid/<?= $type ?>/<?= $item["id"] ?>"><?= $item["name"] ?></a></td>
+			<td><a href="/Pellucid/<?= $type ?>/<?= $item["id"] ?>"><?= $item["name"] || $item["email"] ?></a></td>
 			<td><a href="/Pellucid/admin/<?= $type ?>/<?= $item["id"] ?>">EDIT</a></td>
 		  </tr>
 		  

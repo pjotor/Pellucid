@@ -97,6 +97,10 @@ foreach( $items as $item ) {
 include "admin/list/default.php";
 		break;
 
+		case "overview": 
+include "admin/list/overview.php";
+		break;		
+		
 		default: 
 include "admin/list/default.php";	
 	} 
